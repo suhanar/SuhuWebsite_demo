@@ -93,10 +93,59 @@
     </style>
 </head>
 <script>
-  var _etmc = [];
-  _etmc.push(["setOrgId", "534015591"]);
-  _etmc.push(["trackPageView"]);
+    // Helper Function to Send Data to SFMC
+    async function sendToSFMC(data) {
+        const endpoint = "http://cloud.email.kasmo.co/Tracking_Demo"; // Replace with your Cloud Page URL
+        try {
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+            console.log("Data sent to SFMC:", response.statusText);
+        } catch (error) {
+            console.error("Error sending data to SFMC:", error);
+        }
+    }
+
+    // Generate a UUID for Anonymous Users
+    function generateVisitorID() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            const r = (Math.random() * 16) | 0,
+                v = c === "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
+    }
+
+    // Store VisitorID and Retrieve Known User Details
+    const visitorID = localStorage.getItem("VisitorID") || generateVisitorID();
+    if (!localStorage.getItem("VisitorID")) {
+        localStorage.setItem("VisitorID", visitorID);
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email"); // Use ?email=user@example.com to identify known users
+    if (email) {
+        localStorage.setItem("EmailAddress", email);
+    }
+
+    // Tracking Data
+    const trackingData = {
+        VisitorID: visitorID,
+        EmailAddress: localStorage.getItem("EmailAddress") || null,
+        PageURL: window.location.href,
+        PageTitle: document.title,
+        AccessDateTime: new Date().toISOString(),
+        UserType: localStorage.getItem("EmailAddress") ? "Known" : "Anonymous",
+        BrowserDetails: navigator.userAgent,
+    };
+
+    // Send Tracking Data to SFMC
+    sendToSFMC(trackingData);
 </script>
+
 <body>
     <header>
         <h1>Global Logistics Services</h1>
